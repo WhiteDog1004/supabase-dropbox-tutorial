@@ -17,7 +17,7 @@ export const MainClientPage = () => {
 				setSearchInput={setSearchValue}
 			/>
 			<FileDragDrop />
-			<ImageLists />
+			<ImageLists searchInput={searchValue} />
 		</div>
 	);
 };

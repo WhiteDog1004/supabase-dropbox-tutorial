@@ -1,17 +1,53 @@
-import { Typography } from "@material-tailwind/react";
+import { uploadFile } from "@/actions/storageActions";
+import { queryClient } from "@/config/ReactQueryClientProvider";
+import { Spinner, Typography } from "@material-tailwind/react";
+import { useMutation } from "@tanstack/react-query";
+import { useCallback } from "react";
+import { useDropzone } from "react-dropzone";
 
 export const FileDragDrop = () => {
+	const uploadImageMutation = useMutation({
+		mutationFn: uploadFile,
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["images"],
+			});
+		},
+	});
+
+	const onDrop = useCallback(async (acceptedFiles) => {
+		const file = acceptedFiles?.[0];
+
+		if (file) {
+			const formData = new FormData();
+
+			formData.append("file", file);
+
+			await uploadImageMutation.mutate(formData);
+		}
+	}, []);
+
+	const { getRootProps, getInputProps, isDragActive } = useDropzone({
+		onDrop,
+	});
+
 	return (
-		<div className="w-full border-2 border-dotted border-indigo-700 flex flex-col items-center justify-center relative">
+		<form
+			{...getRootProps()}
+			className="w-full border-2 border-dotted border-indigo-700 flex flex-col items-center justify-center relative"
+		>
 			<div className="py-20 flex flex-col">
-				<input
-					type="file"
-					className="w-full h-full absolute left-0 top-0 opacity-0"
-				/>
-				<Typography>
-					파일을 여기에 끌어다 놓거나 클릭하여 업로드하세요!
-				</Typography>
+				<input {...getInputProps()} />
+				{uploadImageMutation.isPending ? (
+					<Spinner />
+				) : isDragActive ? (
+					<Typography>여기에 놓아서 업로드하세요!</Typography>
+				) : (
+					<Typography>
+						파일을 여기에 끌어다 놓거나 클릭하여 업로드하세요!
+					</Typography>
+				)}
 			</div>
-		</div>
+		</form>
 	);
 };
