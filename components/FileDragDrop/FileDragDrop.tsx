@@ -16,12 +16,12 @@ export const FileDragDrop = () => {
 	});
 
 	const onDrop = useCallback(async (acceptedFiles) => {
-		const file = acceptedFiles?.[0];
-
-		if (file) {
+		if (acceptedFiles.length > 0) {
 			const formData = new FormData();
 
-			formData.append("file", file);
+			acceptedFiles.forEach((file) => {
+				formData.append(file.name, file);
+			});
 
 			await uploadImageMutation.mutate(formData);
 		}
@@ -29,10 +29,11 @@ export const FileDragDrop = () => {
 
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		onDrop,
+		multiple: true,
 	});
 
 	return (
-		<form
+		<div
 			{...getRootProps()}
 			className="w-full border-2 border-dotted border-indigo-700 flex flex-col items-center justify-center relative"
 		>
@@ -48,6 +49,6 @@ export const FileDragDrop = () => {
 					</Typography>
 				)}
 			</div>
-		</form>
+		</div>
 	);
 };

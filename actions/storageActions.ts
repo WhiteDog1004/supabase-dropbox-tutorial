@@ -9,18 +9,22 @@ const handleError = (error) => {
 
 export const uploadFile = async (formData: FormData) => {
 	const supabase = await createServerSupabaseClient();
-	const file = formData.get("file") as File;
 
-	const { data, error } = await supabase.storage
-		.from(process.env.NEXT_PUBLIC_STORAGE_BUCKET)
-		// upsert : 같은 name이 있으면 덮어쓰고 없으면 insert
-		.upload(file.name, file, { upsert: true });
+	const files = Array.from(formData.entries()).map(
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		([_, file]) => file as File
+	);
 
-	if (error) {
-		handleError(error);
-	}
+	const results = await Promise.all(
+		files.map((file) =>
+			supabase.storage
+				.from(process.env.NEXT_PUBLIC_STORAGE_BUCKET)
+				// upsert : 같은 name이 있으면 덮어쓰고 없으면 insert
+				.upload(file.name, file, { upsert: true })
+		)
+	);
 
-	return data;
+	return results;
 };
 
 export const searchFiles = async (search: string = "") => {
